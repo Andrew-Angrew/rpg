@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         }
         std::cout << "M: " << M << std::endl;
 
-        for (int i = 1; i < argc - 1; i++) {
+        for (int i = 1; i < argc; i++) {
             if (std::string(argv[i]) == "--useL1") {
                 useL1 = true;
                 break;
