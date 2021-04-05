@@ -34,6 +34,8 @@ void printHelpMessage()
     std::cerr << "  --relevanceVector  " << "Relevance vector length" << std::endl;
     std::cerr << "  --efConstruction   " << "efConstruction parameter. Default: " << defaultEfConstruction << std::endl;
     std::cerr << "  --M                " << "M parameter. Default: " << defaultM << std::endl;
+    std::cerr << "  --useL1            " << "Use l1 metric instead of l2 during graph construction. " << std::endl;
+
     std::cerr << std::endl;
     std::cerr << "Query mode supports the following options:" << std::endl;
     std::cerr << "  --baseSize         " << "Number of items in the base" << std::endl;
@@ -74,6 +76,7 @@ int main(int argc, char *argv[])
     std::string gt_filename;
     int gtQueries = -1, gtTop = -1;
     bool good_gt;
+    bool useL1 = false;
 
     hnswlib::HierarchicalNSW<float> *appr_alg;
     
@@ -209,7 +212,15 @@ int main(int argc, char *argv[])
             }
         }
         std::cout << "M: " << M << std::endl;
-    
+
+        for (int i = 1; i < argc - 1; i++) {
+            if (std::string(argv[i]) == "--useL1") {
+                useL1 = true;
+                break;
+            }
+        }
+        std::cout << "Use " << (useL1 ? "l1" : "l2") << " metric" << std::endl;
+
     } else if (mode == "query") {
         for (int i = 1; i < argc - 1; i++) {
             if (std::string(argv[i]) == "--querySize") {
@@ -361,7 +372,7 @@ int main(int argc, char *argv[])
 
 
     if (mode == "base") {
-        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector);
+        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector, useL1);
         hnswlib::L2Space l2space(1);
         float *mass = new float[vecsize];
         for (int i = 0; i < vecsize; i++) {

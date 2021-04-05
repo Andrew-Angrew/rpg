@@ -29,13 +29,13 @@ int distance_counter = 0;
 std::vector <std::vector <float> > model_features_train;
 std::vector <std::vector <float> > model_features_test;
 int relevanceVectorLength = -1;
-
+bool useL1 = false;
 
 #include "hnswlib.h"
 namespace hnswlib {
     using namespace std;
 
-    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_)
+    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_, bool useL1_=false)
     {
         model_features_train = std::vector <std::vector <float> >(baseSize_, std::vector <float>(trainSize_));
         
@@ -45,7 +45,8 @@ namespace hnswlib {
         }
         train_features.close();
 
-        relevanceVectorLength = relevanceVectorLength_; 
+        relevanceVectorLength = relevanceVectorLength_;
+        useL1 = useL1_;
     }
 
     void InitializeSearch(std::string queryfile_, int baseSize_, int querySize_)
@@ -71,7 +72,11 @@ namespace hnswlib {
         float val = 0;
         for (int i = 0; i < relevanceVectorLength; i++) {
             float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
-            val += tmp * tmp;
+            if (useL1) {
+                val += std::abs(tmp);
+            } else {
+                val += tmp * tmp;
+            }
         }
 
         return val;
