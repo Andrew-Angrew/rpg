@@ -71,7 +71,7 @@ namespace hnswlib {
         float val = 0;
         for (int i = 0; i < relevanceVectorLength; i++) {
             float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
-            val += tmp * tmp;
+            val += std::abs(tmp);
         }
 
         return val;
