@@ -29,13 +29,14 @@ int distance_counter = 0;
 std::vector <std::vector <float> > model_features_train;
 std::vector <std::vector <float> > model_features_test;
 int relevanceVectorLength = -1;
-bool useL1 = false;
+bool useLp = true;
+bool useL2 = true;
 
 #include "hnswlib.h"
 namespace hnswlib {
     using namespace std;
 
-    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_, bool useL1_=false)
+    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_, std::string constructionMetric)
     {
         model_features_train = std::vector <std::vector <float> >(baseSize_, std::vector <float>(trainSize_));
         
@@ -46,7 +47,12 @@ namespace hnswlib {
         train_features.close();
 
         relevanceVectorLength = relevanceVectorLength_;
-        useL1 = useL1_;
+        if (constructionMetric == "min_sum") {
+            useLp = false;
+            useL2 = false;
+        } else if (constructionMetric == "l1") {
+            useL2 = false;
+        }
     }
 
     void InitializeSearch(std::string queryfile_, int baseSize_, int querySize_)
@@ -70,12 +76,23 @@ namespace hnswlib {
         int idx_item = float_item;
 
         float val = 0;
-        for (int i = 0; i < relevanceVectorLength; i++) {
-            float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
-            if (useL1) {
-                val += std::abs(tmp);
+        if (useLp) {
+            if (useL2) {
+                for (int i = 0; i < relevanceVectorLength; i++) {
+                    float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
+                    val += tmp * tmp;
+                }
             } else {
-                val += tmp * tmp;
+                for (int i = 0; i < relevanceVectorLength; i++) {
+                    float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
+                    val += std::abs(tmp);
+                }
+            }
+        } else {
+            val = std::numeric_limits<float>::max();
+            for (int i = 0; i < relevanceVectorLength; i++) {
+                float tmp = model_features_train[idx_item][i] + model_features_train[idx_query][i];
+                val = std::min(val, tmp);
             }
         }
 
