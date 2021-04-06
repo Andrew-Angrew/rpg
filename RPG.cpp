@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
                     break;
                 } else {
                     printError("Inappropriate value for metric: \"" + std::string(argv[i + 1]) + "\"");
+                    return 0;
                 }
             }
         }
