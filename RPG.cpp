@@ -34,7 +34,8 @@ void printHelpMessage()
     std::cerr << "  --relevanceVector  " << "Relevance vector length" << std::endl;
     std::cerr << "  --efConstruction   " << "efConstruction parameter. Default: " << defaultEfConstruction << std::endl;
     std::cerr << "  --M                " << "M parameter. Default: " << defaultM << std::endl;
-    std::cerr << "  --metric           " << "Type of metric for calculation of distances. Options are: \"l1\", \"l2\" and \"min_sum\"" << std::endl;
+    std::cerr << "  --metric           " << "Type of metric for calculation of distances. Options are: \"l1\", \"l2\", \"min_sum\" and \"top_sum\"" << std::endl;
+    std::cerr << "  --sumOrd              " << "Parameter required only for metric \"top_sum\"" << std::endl;
 
     std::cerr << std::endl;
     std::cerr << "Query mode supports the following options:" << std::endl;
@@ -77,6 +78,7 @@ int main(int argc, char *argv[])
     int gtQueries = -1, gtTop = -1;
     bool good_gt;
     std::string constructionMetric = "l2";
+    int sumOrd = -1;
 
     hnswlib::HierarchicalNSW<float> *appr_alg;
     
@@ -216,7 +218,9 @@ int main(int argc, char *argv[])
         for (int i = 1; i < argc - 1; i++) {
             if (std::string(argv[i]) == "--metric") {
                 constructionMetric = std::string(argv[i+1]);
-                if (constructionMetric == "l1" || constructionMetric == "l2" || constructionMetric == "min_sum") {
+                if (
+                    constructionMetric == "l1" || constructionMetric == "l2" ||
+                    constructionMetric == "min_sum" || constructionMetric == "top_sum") {
                     break;
                 } else {
                     printError("Inappropriate value for metric: \"" + std::string(argv[i + 1]) + "\"");
@@ -224,7 +228,20 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        std::cout << "Use " << constructionMetric << " metric" << std::endl;
+        if (constructionMetric == "top_sum") {
+            for (int i = 1; i < argc - 1; i++) {
+                if (std::string(argv[i]) == "--sumOrd") {
+                    if (sscanf(argv[i + 1], "%d", &sumOrd) != 1 || sumOrd < 0 || sumOrd >= relevanceVector) {
+                        printError("Inappropriate value for sumOrd: \"" + std::string(argv[i + 1]) + "\"");
+                        return 0;
+                    }
+                    break;
+                }
+            }
+            std::cout << "Use top_sum metric with rank sum order " << sumOrd << std::endl;
+        } else {
+            std::cout << "Use " << constructionMetric << " metric" << std::endl;
+        }
 
     } else if (mode == "query") {
         for (int i = 1; i < argc - 1; i++) {
@@ -377,7 +394,7 @@ int main(int argc, char *argv[])
 
 
     if (mode == "base") {
-        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector, constructionMetric);
+        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector, constructionMetric, sumOrd);
         hnswlib::L2Space l2space(1);
         float *mass = new float[vecsize];
         for (int i = 0; i < vecsize; i++) {

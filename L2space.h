@@ -19,6 +19,7 @@
 #include <cassert>
 #include <set>
 #include <string>
+#include <algorithm>
 
 #include <omp.h>
 
@@ -31,12 +32,15 @@ std::vector <std::vector <float> > model_features_test;
 int relevanceVectorLength = -1;
 bool useLp = true;
 bool useL2 = true;
+bool useMinSum = true;
+int sumOrd = -1;
 
 #include "hnswlib.h"
 namespace hnswlib {
     using namespace std;
 
-    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_, std::string constructionMetric)
+    void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_,
+                                    std::string constructionMetric, int sumOrd_=-1)
     {
         model_features_train = std::vector <std::vector <float> >(baseSize_, std::vector <float>(trainSize_));
         
@@ -47,9 +51,11 @@ namespace hnswlib {
         train_features.close();
 
         relevanceVectorLength = relevanceVectorLength_;
-        if (constructionMetric == "min_sum") {
+        if (constructionMetric == "min_sum" || constructionMetric == "top_sum") {
             useLp = false;
-            useL2 = false;
+            if (constructionMetric == "top_sum") {
+                useMinSum = false;
+            }
         } else if (constructionMetric == "l1") {
             useL2 = false;
         }
@@ -89,10 +95,19 @@ namespace hnswlib {
                 }
             }
         } else {
-            val = std::numeric_limits<float>::max();
-            for (int i = 0; i < relevanceVectorLength; i++) {
-                float tmp = model_features_train[idx_item][i] + model_features_train[idx_query][i];
-                val = std::min(val, tmp);
+            if (useMinSum) {
+                val = std::numeric_limits<float>::max();
+                for (int i = 0; i < relevanceVectorLength; i++) {
+                    float tmp = model_features_train[idx_item][i] + model_features_train[idx_query][i];
+                    val = std::min(val, tmp);
+                }
+            } else {
+                std::vector<float> sumRanks(relevanceVectorLength);
+                for (int i = 0; i < relevanceVectorLength; i++) {
+                    sumRanks[i] = model_features_train[idx_item][i] + model_features_train[idx_query][i];
+                }
+                std::nth_element(sumRanks.begin(), sumRanks.begin() + sumOrd, sumRanks.end());
+                val = sumRanks[sumOrd];
             }
         }
 
