@@ -59,6 +59,7 @@ namespace hnswlib {
         } else if (constructionMetric == "l1") {
             useL2 = false;
         }
+        sumOrd = sumOrd_;
     }
 
     void InitializeSearch(std::string queryfile_, int baseSize_, int querySize_)
