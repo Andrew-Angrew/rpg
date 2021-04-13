@@ -269,15 +269,14 @@ int main(int argc, char *argv[])
             }
             for (int i = 1; i < argc - 1; i++) {
                 if (std::string(argv[i]) == "--D") {
-                    if (sscanf(argv[i + 1], "%d", &hybridD) != 1 || M <= 0) {
+                    if (sscanf(argv[i + 1], "%d", &hybridD) != 1 || hybridD <= 0) {
                         printError("Inappropriate value for D: \"" + std::string(argv[i + 1]) + "\"");
                         return 0;
                     }
                 }
             }
-        }
-
-        if (constructionMetric == "top_sum") {
+            std::cout << "Use hybrid metric with parameter " << hybridD << std::endl;
+        } else if (constructionMetric == "top_sum") {
             for (int i = 1; i < argc - 1; i++) {
                 if (std::string(argv[i]) == "--sumOrd") {
                     if (sscanf(argv[i + 1], "%d", &sumOrd) != 1 || sumOrd < 0 || sumOrd >= relevanceVector) {
