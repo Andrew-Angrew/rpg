@@ -29,18 +29,22 @@
 int distance_counter = 0;
 std::vector <std::vector <float> > model_features_train;
 std::vector <std::vector <float> > model_features_test;
+std::vector <std::vector <float> > itemRanks;
+std::vector<float> rankToDist;
 int relevanceVectorLength = -1;
 bool useLp = true;
 bool useL2 = true;
 bool useMinSum = true;
 int sumOrd = -1;
+int hybridD = -1;
 
 #include "hnswlib.h"
 namespace hnswlib {
     using namespace std;
 
     void InitializeBaseConstruction(std::string basefile_, int baseSize_, int trainSize_, int relevanceVectorLength_,
-                                    std::string constructionMetric, int sumOrd_=-1)
+                                    std::string constructionMetric, int sumOrd_=-1,
+                                    int hybridD_=-1, std::string itemRanksFileName="", std::string rankToDistFileName="")
     {
         model_features_train = std::vector <std::vector <float> >(baseSize_, std::vector <float>(trainSize_));
         
@@ -60,6 +64,20 @@ namespace hnswlib {
             useL2 = false;
         }
         sumOrd = sumOrd_;
+        hybridD = hybridD_;
+        if (hybridD > 0) {
+            itemRanks = std::vector<std::vector<float>>(baseSize_, std::vector<float>(trainSize_));
+            std::ifstream itemRanksFile(itemRanksFileName, std::ios::binary);
+            for (int i = 0; i < baseSize_; i++) {
+                itemRanksFile.read((char*)itemRanks[i].data(), sizeof(itemRanks[0][0]) * trainSize_);
+            }
+            itemRanksFile.close();
+
+            rankToDist = std::vector<float>(baseSize_);
+            std::ifstream rankToDistFile(rankToDistFileName, std::ios::binary);
+            rankToDistFile.read((char*)rankToDist.data(), sizeof(rankToDist[0]) * baseSize_);
+            rankToDistFile.close();
+        }
     }
 
     void InitializeSearch(std::string queryfile_, int baseSize_, int querySize_)
@@ -73,8 +91,16 @@ namespace hnswlib {
         test_features.close();
     }
 
-	static float
-		constructionDistance(const void *pVect1, const void *pVect2)
+    static float calcL2(int idx1, int idx2) {
+        float val = 0;
+        for (int i = 0; i < relevanceVectorLength; i++) {
+            float tmp = model_features_train[idx1][i] - model_features_train[idx2][i];
+            val += tmp * tmp;
+        }
+        return val;
+    }
+
+	static float constructionDistance(const void *pVect1, const void *pVect2)
 	{
         float float_query = ((float*)pVect1)[0];
         int idx_query = float_query;
@@ -82,13 +108,26 @@ namespace hnswlib {
         float float_item = ((float*)pVect2)[0];
         int idx_item = float_item;
 
+
         float val = 0;
+
+        if (hybridD != -1) {
+            float l2Dist = calcL2(idx_item, idx_query);
+            float minSumRank = std::numeric_limits<float>::max();
+            for (int i = 0; i < relevanceVectorLength; i++) {
+                float tmp = itemRanks[idx_item][i] + itemRanks[idx_query][i];
+                minSumRank = std::min(minSumRank, tmp);
+            }
+            int maxRank = hybridD * minSumRank;
+            if (minSumRank < static_cast<int>(rankToDist.size())) {
+                return std::min(l2Dist, rankToDist[maxRank]);
+            }
+            return l2Dist;
+        }
+
         if (useLp) {
             if (useL2) {
-                for (int i = 0; i < relevanceVectorLength; i++) {
-                    float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];
-                    val += tmp * tmp;
-                }
+                return calcL2(idx_item, idx_query);
             } else {
                 for (int i = 0; i < relevanceVectorLength; i++) {
                     float tmp = model_features_train[idx_item][i] - model_features_train[idx_query][i];

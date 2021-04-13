@@ -35,7 +35,11 @@ void printHelpMessage()
     std::cerr << "  --efConstruction   " << "efConstruction parameter. Default: " << defaultEfConstruction << std::endl;
     std::cerr << "  --M                " << "M parameter. Default: " << defaultM << std::endl;
     std::cerr << "  --metric           " << "Type of metric for calculation of distances. Options are: \"l1\", \"l2\", \"min_sum\" and \"top_sum\"" << std::endl;
-    std::cerr << "  --sumOrd              " << "Parameter required only for metric \"top_sum\"" << std::endl;
+    std::cerr << "  --sumOrd           " << "Parameter required only for metric \"top_sum\"" << std::endl;
+    std::cerr << "  --itemRanks        " << "File with item ranks with respect to base queries. Required for metric \"hybrid\"" << std::endl;
+    std::cerr << "  --ranksToDist      " << "File with mapping of relative rank of two items to mean distance between them. Required for metric \"hybrid\"" << std::endl;
+    std::cerr << "  --D                " << "Parameter for metric \"hybrid\"" << std::endl;
+
 
     std::cerr << std::endl;
     std::cerr << "Query mode supports the following options:" << std::endl;
@@ -58,6 +62,17 @@ void printError(std::string err)
     printHelpMessage();
 }
 
+bool checkBinaryFile(std::string fileName) {
+    std::ifstream file(fileName, std::ios::binary);
+    if (!file.is_open()) {
+        printError("No such file " + fileName);
+        return false;
+    }
+    file.close();
+    return true;
+}
+
+
 int main(int argc, char *argv[])
 {
     std::string mode;
@@ -79,6 +94,9 @@ int main(int argc, char *argv[])
     bool good_gt;
     std::string constructionMetric = "l2";
     int sumOrd = -1;
+    std::string itemRanksFileName;
+    std::string rankToDistFileName;
+    int hybridD = -1;
 
     hnswlib::HierarchicalNSW<float> *appr_alg;
     
@@ -220,7 +238,9 @@ int main(int argc, char *argv[])
                 constructionMetric = std::string(argv[i+1]);
                 if (
                     constructionMetric == "l1" || constructionMetric == "l2" ||
-                    constructionMetric == "min_sum" || constructionMetric == "top_sum") {
+                    constructionMetric == "min_sum" || constructionMetric == "top_sum" ||
+                    constructionMetric == "hybrid"
+                ) {
                     break;
                 } else {
                     printError("Inappropriate value for metric: \"" + std::string(argv[i + 1]) + "\"");
@@ -228,6 +248,35 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (constructionMetric == "hybrid") {
+            for (int i = 1; i < argc - 1; i++) {
+                if (std::string(argv[i]) == "--itemRanks") {
+                    itemRanksFileName = std::string(argv[i + 1]);
+                    if (!checkBinaryFile(itemRanksFileName)) {
+                        printError("item ranks are not specified.");
+                        return 0;
+                    }
+                }
+            }
+            for (int i = 1; i < argc - 1; i++) {
+                if (std::string(argv[i]) == "--ranksToDist") {
+                    rankToDistFileName = std::string(argv[i + 1]);
+                    if (!checkBinaryFile(rankToDistFileName)) {
+                        printError("Mappind from rank to distance not specified.");
+                        return 0;
+                    }
+                }
+            }
+            for (int i = 1; i < argc - 1; i++) {
+                if (std::string(argv[i]) == "--D") {
+                    if (sscanf(argv[i + 1], "%d", &hybridD) != 1 || M <= 0) {
+                        printError("Inappropriate value for D: \"" + std::string(argv[i + 1]) + "\"");
+                        return 0;
+                    }
+                }
+            }
+        }
+
         if (constructionMetric == "top_sum") {
             for (int i = 1; i < argc - 1; i++) {
                 if (std::string(argv[i]) == "--sumOrd") {
@@ -394,7 +443,8 @@ int main(int argc, char *argv[])
 
 
     if (mode == "base") {
-        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector, constructionMetric, sumOrd);
+        hnswlib::InitializeBaseConstruction(base_filename, vecsize, trainQueries, relevanceVector, constructionMetric, sumOrd,
+                                            hybridD, itemRanksFileName, rankToDistFileName);
         hnswlib::L2Space l2space(1);
         float *mass = new float[vecsize];
         for (int i = 0; i < vecsize; i++) {
