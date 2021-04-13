@@ -72,13 +72,14 @@ namespace hnswlib {
                 itemRanksFile.read((char*)itemRanks[i].data(), sizeof(itemRanks[0][0]) * trainSize_);
             }
             itemRanksFile.close();
-			std::cerr << "Ranks loaded" << std::endl;
+			std::cerr << "Ranks loaded " << itemRanks.size() << " " << itemRanks[0].size() << std::endl;
 
             rankToDist = std::vector<float>(baseSize_);
             std::ifstream rankToDistFile(rankToDistFileName, std::ios::binary);
             rankToDistFile.read((char*)rankToDist.data(), sizeof(rankToDist[0]) * baseSize_);
             rankToDistFile.close();
-			std::cerr << "RankToDist loaded: " << rankToDist[0] << " " << rankToDist[1] << " " << std::endl;
+			std::cerr << "RankToDist loaded " << rankToDist.size() << ": "; 
+			std::cerr << rankToDist[0] << " " << rankToDist[1] << " " << rankToDist[2] << " " << std::endl;
         }
     }
 
@@ -111,7 +112,7 @@ namespace hnswlib {
         int idx_item = float_item;
 
 
-        if (hybridD != -1) {
+        if (hybridD > 0) {
             float l2Dist = calcL2(idx_item, idx_query);
             float minSumRank = std::numeric_limits<float>::max();
             for (int i = 0; i < relevanceVectorLength; i++) {
