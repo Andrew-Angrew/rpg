@@ -120,7 +120,7 @@ namespace hnswlib {
                 minSumRank = std::min(minSumRank, tmp);
             }
             int64_t maxRank = static_cast<int64_t>(hybridD) * static_cast<int64_t>(minSumRank);
-            if (minSumRank < static_cast<int>(rankToDist.size())) {
+            if (maxRank < static_cast<int>(rankToDist.size())) {
                 return std::min(l2Dist, rankToDist[maxRank]);
             }
             return l2Dist;
