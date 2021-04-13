@@ -118,7 +118,7 @@ namespace hnswlib {
                 float tmp = itemRanks[idx_item][i] + itemRanks[idx_query][i];
                 minSumRank = std::min(minSumRank, tmp);
             }
-            int maxRank = hybridD * minSumRank;
+            int64t maxRank = static_cast<int64t>(hybridD) * static_cast<int64t>(minSumRank);
             if (minSumRank < static_cast<int>(rankToDist.size())) {
                 return std::min(l2Dist, rankToDist[maxRank]);
             }
