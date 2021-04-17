@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
                 if (
                     constructionMetric == "l1" || constructionMetric == "l2" ||
                     constructionMetric == "min_sum" || constructionMetric == "top_sum" ||
-                    constructionMetric == "hybrid"
+                    constructionMetric == "hybrid" || constructionMetric == "dot_product"
                 ) {
                     break;
                 } else {

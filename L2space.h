@@ -35,6 +35,7 @@ int relevanceVectorLength = -1;
 bool useLp = true;
 bool useL2 = true;
 bool useMinSum = true;
+bool useDotProduct = false;
 int sumOrd = -1;
 int hybridD = -1;
 
@@ -62,6 +63,8 @@ namespace hnswlib {
             }
         } else if (constructionMetric == "l1") {
             useL2 = false;
+        } else if (constructionMetric == "dot_product") {
+            useDotProduct = true;
         }
         sumOrd = sumOrd_;
         hybridD = hybridD_;
@@ -128,6 +131,14 @@ namespace hnswlib {
 
 
         float val = 0;
+
+        if (useDotProduct) {
+            for (int i = 0; i < relevanceVectorLength; i++) {
+                val += model_features_train[idx_item][i] * model_features_train[idx_query][i];
+            }
+            return -val;
+        }
+
         if (useLp) {
             if (useL2) {
                 return calcL2(idx_item, idx_query);
