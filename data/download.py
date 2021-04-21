@@ -291,7 +291,7 @@ def load(dataset, mode):
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset', metavar='dataset', type=str, choices=['collections', 'video', 'all'],
                            help='use \'collections\' to download Collections dataset, \'video\' to download Video dataset and \'all\' to download both')
-parser.add_argument('mode', metavar='mode', type=str, choices=['score', 'model', 'all'],
+parser.add_argument('mode', metavar='mode', type=str, choices=['score', 'model', 'features', 'all'],
     help='use \'score\' to download only model scores (about 8 Gb per dataset), '
     '\'model\' to download the whole model data (~1 Tb) and \'all\' to download'
     ' both, \'features\' to download item and query features (without pairwise features)')
