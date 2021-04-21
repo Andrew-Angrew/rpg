@@ -280,7 +280,7 @@ def download(url, filename, delete_if_interrupted=True, chunk_size=4096):
 def load(dataset, mode):
     if mode == 'score':
         data_path = join(dataset, 'data/model_scores/')
-    elif mode == 'model':
+    else:
         data_path = join(dataset, 'data/pairwise/')
 
     os.makedirs(os.path.dirname(data_path), exist_ok=True)
