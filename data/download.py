@@ -12,6 +12,12 @@ links_list[('collections', 'score')] = [
         ('collections/data/model_scores/groundtruth.bin', 'https://www.dropbox.com/s/cszb9zt7j64hm58/groundtruth.bin?dl=1')
         ]
 
+links_list[('collections', 'features')] = [
+        ('collections/data/user_features_test.fvecs', 'https://www.dropbox.com/s/qt65bfcbmy1l7xy/user_features_test.fvecs?dl=1'),
+        ('collections/data/item_features.fvecs', 'https://www.dropbox.com/s/yetngpvpv6t7ben/item_features.fvecs?dl=1'),
+        ('collections/data/user_features_train.fvecs', 'https://www.dropbox.com/s/jjjrqy01u8kucez/user_features_train.fvecs?dl=1'),
+]
+
 links_list[('collections', 'model')] = [
         ('collections/model.bin', 'https://www.dropbox.com/s/iodg7lvtq89ousk/model.bin?dl=1'),
         ('collections/data/user_features_test.fvecs', 'https://www.dropbox.com/s/qt65bfcbmy1l7xy/user_features_test.fvecs?dl=1'),
@@ -84,6 +90,12 @@ links_list[('video', 'score')] = [
         ('video/data/model_scores/scores_train.bin', 'https://www.dropbox.com/s/mnil3kacync6ou0/scores_train.bin?dl=1'),
         ('video/data/model_scores/groundtruth.bin', 'https://www.dropbox.com/s/w8bfprg1y93ixpc/groundtruth.bin?dl=1')
         ]
+
+links_list[('video', 'features')] = [
+        ('video/data/user_features_test.fvecs', 'https://www.dropbox.com/s/3ugen0i258a9odg/user_features_test.fvecs?dl=1'),
+        ('video/data/item_features.fvecs', 'https://www.dropbox.com/s/l72wnxpjtib554d/item_features.fvecs?dl=1'),
+        ('video/data/user_features_train.fvecs', 'https://www.dropbox.com/s/udam6p6g37gwvi1/user_features_train.fvecs?dl=1'),
+]
 
 links_list[('video', 'model')] = [
         ('video/model.bin', 'https://www.dropbox.com/s/l2sj4nny9u7p9d3/model.bin?dl=1'),
@@ -280,7 +292,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('dataset', metavar='dataset', type=str, choices=['collections', 'video', 'all'],
                            help='use \'collections\' to download Collections dataset, \'video\' to download Video dataset and \'all\' to download both')
 parser.add_argument('mode', metavar='mode', type=str, choices=['score', 'model', 'all'],
-                           help='use \'score\' to download only model scores (about 8 Gb per dataset), \'model\' to download the whole model data (~1 Tb) and \'all\' to download both')
+    help='use \'score\' to download only model scores (about 8 Gb per dataset), '
+    '\'model\' to download the whole model data (~1 Tb) and \'all\' to download'
+    ' both, \'features\' to download item and query features (without pairwise features)')
 
 args = parser.parse_args()
 
