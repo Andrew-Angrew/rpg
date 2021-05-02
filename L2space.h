@@ -32,6 +32,7 @@ std::vector <std::vector <float> > model_features_test;
 std::vector <std::vector <float> > itemRanks;
 std::vector<float> rankToDist;
 int relevanceVectorLength = -1;
+bool usePrecomputedRanks = false;
 bool useLp = true;
 bool useL2 = true;
 bool useMinSum = true;
@@ -56,6 +57,9 @@ namespace hnswlib {
         train_features.close();
 
         relevanceVectorLength = relevanceVectorLength_;
+        if (constructionMetric == "precomputed_ranks") {
+            usePrecomputedRanks = true;
+        }
         if (constructionMetric == "min_sum" || constructionMetric == "top_sum") {
             useLp = false;
             if (constructionMetric == "top_sum") {
@@ -114,6 +118,9 @@ namespace hnswlib {
         float float_item = ((float*)pVect2)[0];
         int idx_item = float_item;
 
+        if (usePrecomputedRanks) {
+            return model_features_train[idx_query][idx_item];
+        }
 
         if (hybridD > 0) {
             float l2Dist = calcL2(idx_item, idx_query);
