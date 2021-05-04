@@ -119,7 +119,7 @@ namespace hnswlib {
         int idx_item = float_item;
 
         if (usePrecomputedRanks) {
-            return model_features_train[idx_query][idx_item];
+            return model_features_train[idx_item][idx_query];
         }
 
         if (hybridD > 0) {
