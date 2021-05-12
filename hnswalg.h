@@ -99,7 +99,8 @@ namespace hnswlib {
     vector<mutex> ll_locks;
     tableint enterpoint_node;
 
-    size_t dist_calc;
+    size_t dist_calc = 0;
+    size_t hops = 0;
     size_t size_links_level0_;
     size_t offsetData_, offsetLevel0_;
 
@@ -147,9 +148,11 @@ namespace hnswlib {
       massVisited[ep] = currentV;
       dist_t lowerBound = dist;
 
+	  size_t num_hops = 0;
       while (!candidateSet.empty()) {
 
         std::pair<dist_t, tableint> curr_el_pair = candidateSet.top();
+		num_hops++;
 
         if ((-curr_el_pair.first) > lowerBound) {
           break;
@@ -194,6 +197,7 @@ namespace hnswlib {
         }
       }
       visitedlistpool->releaseVisitedList(vl);
+	  hops += num_hops;
 
       return topResults;
     }
@@ -217,10 +221,12 @@ namespace hnswlib {
       candidateSet.emplace(-dist, ep);
       massVisited[ep] = currentV;
       dist_t lowerBound = dist;
+	  size_t num_hops = 0;
 
       while (!candidateSet.empty()) {
 
         std::pair<dist_t, tableint> curr_el_pair = candidateSet.top();
+		num_hops++;
 
         if ((-curr_el_pair.first) > lowerBound) {
           break;
@@ -263,6 +269,7 @@ namespace hnswlib {
       }
 
       visitedlistpool->releaseVisitedList(vl);
+	  hops += num_hops;
       return topResults;
     }
     void getNeighborsByHeuristic2(std::priority_queue< std::pair< dist_t, tableint>> &topResults, const int NN)
