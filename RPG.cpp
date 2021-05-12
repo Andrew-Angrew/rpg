@@ -483,6 +483,7 @@ int main(int argc, char *argv[])
 		
         appr_alg = new hnswlib::HierarchicalNSW<float>(&l2space, graphname.data());
         appr_alg->setEf(efSearch);
+		appr_alg->hops = 0;
         std::ofstream fres;
         if (!outputname.empty()) {
             fres.open(outputname);
@@ -526,6 +527,7 @@ int main(int argc, char *argv[])
  
         std::cout << "Average relevance: " << sum / (qsize * topK) << std::endl;
         std::cout << "Average number of model computations: " << hnswlib::geDistanceCounter() / (double)(qsize) << std::endl;
+		std::cout << "Average number of hops: " << appr_alg->hops / (double)(qsize) << std::endl;
  
         if (good_gt) {
 
