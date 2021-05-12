@@ -152,7 +152,7 @@ namespace hnswlib {
       while (!candidateSet.empty()) {
 
         std::pair<dist_t, tableint> curr_el_pair = candidateSet.top();
-		num_hops++;
+	    num_hops++;
 
         if ((-curr_el_pair.first) > lowerBound) {
           break;
@@ -221,12 +221,12 @@ namespace hnswlib {
       candidateSet.emplace(-dist, ep);
       massVisited[ep] = currentV;
       dist_t lowerBound = dist;
-	  size_t num_hops = 0;
+      size_t num_hops = 0;
 
       while (!candidateSet.empty()) {
 
         std::pair<dist_t, tableint> curr_el_pair = candidateSet.top();
-		num_hops++;
+        num_hops++;
 
         if ((-curr_el_pair.first) > lowerBound) {
           break;
@@ -269,7 +269,7 @@ namespace hnswlib {
       }
 
       visitedlistpool->releaseVisitedList(vl);
-	  hops += num_hops;
+      hops += num_hops;
       return topResults;
     }
     void getNeighborsByHeuristic2(std::priority_queue< std::pair< dist_t, tableint>> &topResults, const int NN)
