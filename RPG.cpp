@@ -39,6 +39,7 @@ void printHelpMessage()
     std::cerr << "  --itemRanks        " << "File with item ranks with respect to base queries. Required for metric \"hybrid\"" << std::endl;
     std::cerr << "  --ranksToDist      " << "File with mapping of relative rank of two items to mean distance between them. Required for metric \"hybrid\"" << std::endl;
     std::cerr << "  --D                " << "Parameter for metric \"hybrid\"" << std::endl;
+    std::cerr << "  --sequential       " << "Add points sequentially" << std::endl;
 
 
     std::cerr << std::endl;
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
     std::string itemRanksFileName;
     std::string rankToDistFileName;
     int hybridD = -1;
+    bool sequentialBuild = false;
 
     hnswlib::HierarchicalNSW<float> *appr_alg;
     
@@ -292,6 +294,13 @@ int main(int argc, char *argv[])
             std::cout << "Use " << constructionMetric << " metric" << std::endl;
         }
 
+        for (int i = 1; i < argc - 1; i++) {
+            if (std::string(argv[i]) == "--sequential") {
+                sequentialBuild = true;
+                break;
+            }
+        }
+
     } else if (mode == "query") {
         for (int i = 1; i < argc - 1; i++) {
             if (std::string(argv[i]) == "--querySize") {
@@ -452,15 +461,21 @@ int main(int argc, char *argv[])
         }
         
         appr_alg = new hnswlib::HierarchicalNSW<float>(&l2space, vecsize, M, efConstruction);
-        std::cout << "Building index" << std::endl;
+        std::cout << "Building index " << (sequentialBuild ? "sequentially" : "in parallel") << std::endl;
         double t1 = omp_get_wtime();
-        for (int i = 0; i < 1; i++) {
-            appr_alg->addPoint((void *)(mass + i), (size_t)i);
-        }
+        if (sequentialBuild) {
+            for (int i = 0; i < vecsize; i++) {
+                appr_alg->addPoint((void *)(mass + i), (size_t)i);
+            }
+        } else {
+            for (int i = 0; i < 1; i++) {
+                appr_alg->addPoint((void *)(mass + i), (size_t)i);
+            }
 
-        #pragma omp parallel for
-        for (int i = 1; i < vecsize; i++) {
-            appr_alg->addPoint((void *)(mass + i), (size_t)i);
+            #pragma omp parallel for
+            for (int i = 1; i < vecsize; i++) {
+                appr_alg->addPoint((void *)(mass + i), (size_t)i);
+            }
         }
         double t2 = omp_get_wtime();
  
