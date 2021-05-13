@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
             std::cout << "Use " << constructionMetric << " metric" << std::endl;
         }
 
-        for (int i = 1; i < argc - 1; i++) {
+        for (int i = 1; i < argc; i++) {
             if (std::string(argv[i]) == "--sequential") {
                 sequentialBuild = true;
                 break;
