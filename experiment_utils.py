@@ -108,7 +108,6 @@ def prepare_sift(masked_coord_counts, verbose=False, recalc=False):
     # The data is taken from here:
     # https://github.com/erikbern/ann-benchmarks
     with h5py.File("data/sift/sift-128-euclidean.hdf5", "r") as f:
-        print(f.keys())
         sift_base = f["train"][:]
         sift_query = f['test'][:]
     assert sift_base.shape == (ITEM_COUNT, 128)
