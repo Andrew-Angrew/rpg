@@ -338,7 +338,7 @@ def run_experiment_with_coordinate_masking(
         ).reshape((QUERY_COUNT, GT_TOP_LEN))
         gt = gt[:,:recall_top_len]
         results[label] = calc_eval_recall_curve(approximate_top, gt, recall_top_len)
-    with open(result_path) as fout:
+    with open(result_path, "w") as fout:
         json.dump(results, fout, indent=4)
     return results
 
