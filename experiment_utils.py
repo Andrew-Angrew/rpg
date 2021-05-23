@@ -79,7 +79,7 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
         if verbose:
             print("Calc ground truth nearest neighbors for {}".format(dataset))
             gt = (-gt_test_scores).argsort(axis=0)[:GT_TOP_LEN,:].T.astype("int32")
-            gt.tofile()
+            gt.tofile(gt_path)
 
 
 def prepare_glove(dim, masked_coord_counts, verbose=False, recalc=False):
