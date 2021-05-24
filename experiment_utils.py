@@ -65,6 +65,8 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
         )
         if os.path.isfile(masked_scores_path) and not recalc:
             continue
+        if verbose:
+            print("masked count:", masked_count)
         masked_model_test_scores = calc_pairwise_relevance(
             items[:,:dim - masked_count],
             test_queries[:,:dim - masked_count]
@@ -135,7 +137,7 @@ def prepare_deep96(masked_coord_counts, verbose=False, recalc=False):
     test_queries = deep_query[QUERY_COUNT: 2 * QUERY_COUNT]    
     items = deep_base[:ITEM_COUNT]
 
-    prepare_data("deep1M", 96, items, train_queries, test_queries, masked_coord_counts, verbose, recalc)
+    prepare_data("deep_96", 96, items, train_queries, test_queries, masked_coord_counts, verbose, recalc)
 
 def prepare_deep256(masked_coord_counts, verbose=False, recalc=False):
     if verbose:
@@ -154,7 +156,7 @@ def prepare_deep256(masked_coord_counts, verbose=False, recalc=False):
     np.random.shuffle(learn)
     train_queries = learn[:QUERY_COUNT]
 
-    prepare_data("deep256", 256, items, train_queries, test_queries, masked_coord_counts, verbose, recalc)
+    prepare_data("deep_256", 256, items, train_queries, test_queries, masked_coord_counts, verbose, recalc)
 
 
 build_graph_cmd_template = (
@@ -346,7 +348,7 @@ def run_experiment_with_coordinate_masking(
 def plot_chosen_results(results, keys=None, xlim=None, ylim=None,
                         hlines=None, vlines=None, x_log_scale=False):
     plt.figure(figsize=(10, 10))
-    plt.xlabel("evals")
+    plt.xlabel("Number of distance computations")
     plt.ylabel("recall")
     if keys is None:
         keys = results.keys()
@@ -354,10 +356,12 @@ def plot_chosen_results(results, keys=None, xlim=None, ylim=None,
         plt.xlim(xlim)
         if hlines is not None:
             plt.hlines(hlines, *xlim, color="grey", alpha=0.5)
+            plt.yticks(hlines)
     if ylim is not None:
         plt.ylim(ylim)
         if vlines is not None:
             plt.vlines(vlines, *ylim, color="grey", alpha=0.5)
+            plt.xticks(vlines)
     if x_log_scale:
         plt.xscale("log")
     
