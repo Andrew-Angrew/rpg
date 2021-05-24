@@ -46,6 +46,7 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
     items = normalize(items)[:,coordinate_permutation]
     train_queries = normalize(train_queries)[:,coordinate_permutation]
     test_queries = normalize(test_queries)[:,coordinate_permutation]
+    train_uniform_queries = normalize(np.random.randn(*train_queries.shape))
 
     os.makedirs("data/{}/data/model_scores".format(dataset), exist_ok=True)
     train_queries.tofile("data/{}/data/train_queries.bin".format(dataset))
@@ -56,6 +57,11 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
     item_transformation = sqrtm(query_cov)
     transformed_items = items.dot(item_transformation).astype("float32")
     transformed_items.tofile("data/{}/data/transformed_items.bin".format(dataset))
+
+    uniform_query_cov = train_uniform_queries .T.dot(train_uniform_queries )
+    uniform_item_transformation = sqrtm(uniform_query_cov)
+    uniformly_transformed_items = items.dot(uniform_item_transformation).astype("float32")
+    uniformly_transformed_items.tofile("data/{}/data/uniformly_transformed_items.bin".format(dataset))
     
     if verbose and masked_coord_counts:
         print("compute test scores for models with masked coordinates") 
@@ -306,7 +312,8 @@ def run_experiment_with_coordinate_masking(
     
     for label, features in [
         ("rpg", "transformed_items"),
-        ("hnsw", "items")
+        ("hnsw", "items"),
+        ("rpg_unifrom_train", "uniformly_transformed_items")
     ]:
         if label in results and not recalc_search:
             continue
