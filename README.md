@@ -19,6 +19,7 @@ It performs a fast relevance retrieval over a large-scale database with a given 
  * SIFT: put file "sift-128-euclidean.hdf5" form https://github.com/erikbern/ann-benchmarks to folder data/sift
  * Deep (96): put files "deep10M.fvecs" and "deep1B_queries.fvecs" from http://sites.skoltech.ru/compvision/noimi/ to folder data/deep_96
  * Deep (256): put files "deep1M_base.fvecs", "deep1M_learn.fvecs" and "deep1M_queries.fvecs" from http://sites.skoltech.ru/compvision/projects/aqtq/ to folder data/deep_256
+
 Then run appropriate notebook with name of the kind "preliminary_experiment_*".
 3. If you want to evaluate RPG on Collections and Video datasets, then download them using `data/download.py` script. If you want to download only precomputed relevance function scores, run:
 * `cd data`
