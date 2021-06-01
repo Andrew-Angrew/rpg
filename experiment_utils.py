@@ -39,14 +39,13 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
                  verbose=False, recalc=False):
     assert train_queries.shape == (QUERY_COUNT, dim)
     assert test_queries.shape == (QUERY_COUNT, dim)
-    assert items.shape == (ITEM_COUNT, dim)
     
     np.random.seed(0)
     coordinate_permutation = np.random.permutation(dim)
-    items = normalize(items)[:,coordinate_permutation]
-    train_queries = normalize(train_queries)[:,coordinate_permutation]
-    test_queries = normalize(test_queries)[:,coordinate_permutation]
-    train_uniform_queries = normalize(np.random.randn(*train_queries.shape))
+    items = normalize(items)[:,coordinate_permutation].astype("float32")
+    train_queries = normalize(train_queries)[:,coordinate_permutation].astype("float32")
+    test_queries = normalize(test_queries)[:,coordinate_permutation].astype("float32")
+    train_uniform_queries = normalize(np.random.randn(*train_queries.shape)).astype("float32")
 
     os.makedirs("data/{}/data/model_scores".format(dataset), exist_ok=True)
     train_queries.tofile("data/{}/data/train_queries.bin".format(dataset))
@@ -54,7 +53,7 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
     items.tofile("data/{}/data/items.bin".format(dataset))
 
     query_cov = train_queries.T.dot(train_queries)
-    item_transformation = sqrtm(query_cov)
+    item_transformation = sqrtm(query_cov).astype("float32")
     transformed_items = items.dot(item_transformation).astype("float32")
     transformed_items.tofile("data/{}/data/transformed_items.bin".format(dataset))
 
@@ -86,8 +85,8 @@ def prepare_data(dataset, dim, items, train_queries, test_queries, masked_coord_
         gt_test_scores.tofile("data/{}/data/model_scores/gt_test_scores.bin".format(dataset))
         if verbose:
             print("Calc ground truth nearest neighbors for {}".format(dataset))
-            gt = (-gt_test_scores).argsort(axis=0)[:GT_TOP_LEN,:].T.astype("int32")
-            gt.tofile(gt_path)
+        gt = (-gt_test_scores).argsort(axis=0)[:GT_TOP_LEN,:].T.astype("int32")
+        gt.tofile(gt_path)
 
 
 def prepare_glove(dim, masked_coord_counts, verbose=False, recalc=False):
@@ -212,7 +211,7 @@ def run_cmd(cmd):
 def run_search(graph_path, scores_file, ef_ticks, dataset,
                recall_top_len=5, result_file=None,
                base_size=ITEM_COUNT, gt_file="groundtruth_test.bin",
-               n_threads=8):
+               n_threads=8, verbose=False):
     if result_file is None:
         result_file = "result"
     else:
@@ -232,6 +231,10 @@ def run_search(graph_path, scores_file, ef_ticks, dataset,
         ))
     pool = Pool(processes=n_threads)
     command_outputs = pool.map(run_cmd, commands)
+    if verbose and commands:
+        print(commands[0])
+        print()
+        print(command_outputs[0])
 
     search_results = {"relevance": [], "recall": [], "evals": []}
     for i, cmd_out in enumerate(command_outputs):
@@ -261,9 +264,9 @@ def run_search(graph_path, scores_file, ef_ticks, dataset,
 
 def logspace(start, stop, count, include_ends=True):
     cnt_ = count if include_ends else count + 2
-    seq = np.unique(np.exp(
+    seq = np.unique(np.round(np.exp(
         np.linspace(np.log(start), np.log(stop), cnt_)
-    ).astype("int"))
+    )).astype("int"))
     if include_ends:
         return seq
     return seq[1:-1]
@@ -353,10 +356,12 @@ def run_experiment_with_coordinate_masking(
 
 
 def plot_chosen_results(results, keys=None, xlim=None, ylim=None,
-                        hlines=None, vlines=None, x_log_scale=False):
-    plt.figure(figsize=(10, 10))
+                        hlines=None, vlines=None, x_log_scale=False,
+                        figsize=(10, 10), ylabel="recall", relabeling=None,
+                        file_name=None, dpi=300):
+    plt.figure(figsize=figsize)
     plt.xlabel("Number of distance computations")
-    plt.ylabel("recall")
+    plt.ylabel(ylabel)
     if keys is None:
         keys = results.keys()
     if xlim is not None:
@@ -369,6 +374,8 @@ def plot_chosen_results(results, keys=None, xlim=None, ylim=None,
         if vlines is not None:
             plt.vlines(vlines, *ylim, color="grey", alpha=0.5)
             plt.xticks(vlines)
+    if relabeling is None:
+        relabeling = {}
     if x_log_scale:
         plt.xscale("log")
     
@@ -377,9 +384,10 @@ def plot_chosen_results(results, keys=None, xlim=None, ylim=None,
         r = results[key]
         x = r["evals"]
         y = r["recall"]
-        plt.plot(x, y, label=key)
-        if len(x) < 100:
-            plt.scatter(x, y, s=3)
+        plt.plot(x, y, label=relabeling.get(key, key))
+#         if len(x) < 100:
+#             plt.scatter(x, y, s=3)
     plt.legend()
+    if file_name is not None:
+        plt.savefig(file_name, dpi=dpi)
     plt.show()
-
