@@ -29,9 +29,6 @@ It performs a fast relevance retrieval over a large-scale database with a given 
 * `python3 download.py all model`
 * You can run these models using the demo-script `data/compute_scores.py`
 4. After the data was prepared you need to build a graph and run the search algorithm:
-* To perform experiments on SIFT dataset run:
-   * `./RPG --mode base --baseSize 1000000 --trainQueries 1000 --base data/sift/train_sift.bin  --outputGraph data/sift/graph.out --relevanceVector 100 --efConstruction 1000 --M 8`
-   * `./RPG --mode query --baseSize 1000000 --querySize 1000 --query data/sift/test_sift.bin --inputGraph data/sift/graph.out --efSearch 300 --topK 5 --output data/sift/result.txt --gtQueries 1000 --gtTop 100 --groundtruth data/sift/groundtruth_sift.bin`
 * To perform experiments on Collections dataset run:
    * `./RPG --mode base --baseSize 1000000 --trainQueries 1000 --base data/collections/data/model_scores/scores_train.bin --outputGraph data/collections/graph.out --relevanceVector 1000 --efConstruction 1000 --M 8`
    * `./RPG --mode query --baseSize 1000000 --querySize 1000 --query data/collections/data/model_scores/scores_test.bin --inputGraph data/collections/graph.out --efSearch 300 --topK 5 --output data/collections/result.txt --gtQueries 1000 --gtTop 100 --groundtruth data/collections/data/model_scores/groundtruth.bin`
